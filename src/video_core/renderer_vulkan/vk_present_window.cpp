@@ -403,7 +403,7 @@ void PresentWindow::CopyToSwapchain(Frame* frame) {
         vk::ImageMemoryBarrier{
             .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
             .dstAccessMask = vk::AccessFlagBits::eTransferRead,
-            .oldLayout = vk::ImageLayout::eTransferSrcOptimal,
+            .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
             .newLayout = vk::ImageLayout::eTransferSrcOptimal,
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -438,7 +438,8 @@ void PresentWindow::CopyToSwapchain(Frame* frame) {
                            vk::PipelineStageFlagBits::eTransfer, vk::DependencyFlagBits::eByRegion,
                            {}, {}, pre_barriers);
 
-    if (blit_supported) {
+    const bool needs_scaling = frame->width != extent.width || frame->height != extent.height;
+    if (blit_supported && needs_scaling) {
         cmdbuf.blitImage(frame->image, vk::ImageLayout::eTransferSrcOptimal, swapchain_image,
                          vk::ImageLayout::eTransferDstOptimal,
                          MakeImageBlit(frame->width, frame->height, extent.width, extent.height),
@@ -489,7 +490,7 @@ void PresentWindow::CopyToSwapchain(Frame* frame) {
 vk::RenderPass PresentWindow::CreateRenderpass() {
     const vk::AttachmentReference color_ref = {
         .attachment = 0,
-        .layout = vk::ImageLayout::eGeneral,
+        .layout = vk::ImageLayout::eColorAttachmentOptimal,
     };
 
     const vk::SubpassDescription subpass = {
@@ -508,8 +509,8 @@ vk::RenderPass PresentWindow::CreateRenderpass() {
         .storeOp = vk::AttachmentStoreOp::eStore,
         .stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
         .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
-        .initialLayout = vk::ImageLayout::eUndefined,
-        .finalLayout = vk::ImageLayout::eTransferSrcOptimal,
+        .initialLayout = vk::ImageLayout::eColorAttachmentOptimal,
+        .finalLayout = vk::ImageLayout::eColorAttachmentOptimal,
     };
 
     const vk::RenderPassCreateInfo renderpass_info = {

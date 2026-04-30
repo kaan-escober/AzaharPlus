@@ -64,7 +64,7 @@ void Swapchain::Create(u32 width_, u32 height_, vk::SurfaceKHR surface_, bool lo
         .imageExtent = extent,
         .imageArrayLayers = 1,
         .imageUsage = vk::ImageUsageFlagBits::eColorAttachment |
-                      vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst,
+                      vk::ImageUsageFlagBits::eTransferDst,
         .imageSharingMode = sharing_mode,
         .queueFamilyIndexCount = queue_family_indices_count,
         .pQueueFamilyIndices = queue_family_indices.data(),
@@ -239,8 +239,12 @@ void Swapchain::SetSurfaceProperties() {
                                  std::min(capabilities.maxImageExtent.height, height));
     }
 
-    // Select number of images in swap chain, we prefer one buffer in the background to work on
-    image_count = capabilities.minImageCount + 1;
+    // Select number of images in swap chain. Prefer the minimum to reduce memory footprint.
+    // Only request an extra buffer for Mailbox mode where it is actually needed.
+    image_count = capabilities.minImageCount;
+    if (present_mode == vk::PresentModeKHR::eMailbox) {
+        image_count += 1;
+    }
     if (capabilities.maxImageCount > 0) {
         image_count = std::min(image_count, capabilities.maxImageCount);
     }
