@@ -912,7 +912,16 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     IntSetting.RESOLUTION_FACTOR.defaultValue
                 )
             )
-             add(
+            add(
+                SwitchSetting(
+                    BooleanSetting.ASYMMETRIC_RESOLUTION_SCALING,
+                    R.string.asymmetric_resolution_scaling,
+                    R.string.asymmetric_resolution_scaling_description,
+                    BooleanSetting.ASYMMETRIC_RESOLUTION_SCALING.key,
+                    BooleanSetting.ASYMMETRIC_RESOLUTION_SCALING.defaultValue
+                )
+            )
+            add(
                 SwitchSetting(
                     BooleanSetting.USE_INTEGER_SCALING,
                     R.string.use_integer_scaling,

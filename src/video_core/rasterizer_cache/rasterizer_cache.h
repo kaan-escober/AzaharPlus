@@ -35,9 +35,12 @@ constexpr auto RangeFromInterval(const auto& map, const auto& interval) {
 template <class T>
 RasterizerCache<T>::RasterizerCache(Memory::MemorySystem& memory_,
                                     CustomTexManager& custom_tex_manager_, Runtime& runtime_,
-                                    Pica::RegsInternal& regs_, RendererBase& renderer_)
+                                    Pica::RegsInternal& regs_,
+                                    const Pica::FramebufferConfig* lcd_framebuffer_config_,
+                                    RendererBase& renderer_)
     : memory{memory_}, custom_tex_manager{custom_tex_manager_}, runtime{runtime_}, regs{regs_},
-      renderer{renderer_}, resolution_scale_factor{renderer.GetResolutionScaleFactor()},
+      lcd_framebuffer_config{lcd_framebuffer_config_}, renderer{renderer_},
+      resolution_scale_factor{renderer.GetResolutionScaleFactor()},
       filter{Settings::values.texture_filter.GetValue()},
       dump_textures{Settings::values.dump_textures.GetValue()},
       use_custom_textures{Settings::values.custom_textures.GetValue()} {
@@ -703,14 +706,27 @@ FramebufferHelper<T> RasterizerCache<T>::GetFramebufferSurfaces(bool using_color
         static_cast<u32>(std::clamp(viewport_rect.bottom, 0, framebuffer_height)),
     };
 
+    const PAddr color_buffer_addr = config.GetColorBufferPhysicalAddress();
+    const auto& bottom_framebuffer = lcd_framebuffer_config[1];
+    const bool is_bottom_screen =
+        color_buffer_addr != 0 &&
+        (color_buffer_addr == bottom_framebuffer.address_left1 ||
+         color_buffer_addr == bottom_framebuffer.address_left2 ||
+         color_buffer_addr == bottom_framebuffer.address_right1 ||
+         color_buffer_addr == bottom_framebuffer.address_right2);
+    const bool use_native_resolution =
+        Settings::values.asymmetric_resolution_scaling.GetValue() &&
+        (regs.framebuffer.IsShadowRendering() || is_bottom_screen);
+    const u32 framebuffer_res_scale = use_native_resolution ? 1 : resolution_scale_factor;
+
     SurfaceParams color_params;
     color_params.is_tiled = true;
-    color_params.res_scale = resolution_scale_factor;
+    color_params.res_scale = framebuffer_res_scale;
     color_params.width = config.GetWidth();
     color_params.height = config.GetHeight();
     SurfaceParams depth_params = color_params;
 
-    color_params.addr = config.GetColorBufferPhysicalAddress();
+    color_params.addr = color_buffer_addr;
     color_params.pixel_format = PixelFormatFromColorFormat(config.color_format);
     color_params.UpdateParams();
 

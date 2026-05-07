@@ -43,6 +43,7 @@ foreach(KEY IN ITEMS
     "use_display_refresh_rate_detection"
     "use_shader_jit"
     "resolution_factor"
+    "asymmetric_resolution_scaling"
     "frame_limit"
     "turbo_limit"
     "texture_filter"

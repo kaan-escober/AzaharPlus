@@ -24,6 +24,7 @@ class MemorySystem;
 
 namespace Pica {
 struct RegsInternal;
+struct FramebufferConfig;
 struct DisplayTransferConfig;
 struct MemoryFillConfig;
 } // namespace Pica
@@ -78,7 +79,9 @@ class RasterizerCache {
 
 public:
     explicit RasterizerCache(Memory::MemorySystem& memory, CustomTexManager& custom_tex_manager,
-                             Runtime& runtime, Pica::RegsInternal& regs, RendererBase& renderer);
+                             Runtime& runtime, Pica::RegsInternal& regs,
+                             const Pica::FramebufferConfig* lcd_framebuffer_config,
+                             RendererBase& renderer);
     ~RasterizerCache();
 
     /// Notify the cache that a new frame has been queued
@@ -215,6 +218,7 @@ private:
     CustomTexManager& custom_tex_manager;
     Runtime& runtime;
     Pica::RegsInternal& regs;
+    const Pica::FramebufferConfig* lcd_framebuffer_config;
     RendererBase& renderer;
     std::unordered_map<TextureCubeConfig, TextureCube> texture_cube_cache;
     tsl::robin_pg_map<u64, std::vector<SurfaceId>, Common::IdentityHash<u64>> page_table;

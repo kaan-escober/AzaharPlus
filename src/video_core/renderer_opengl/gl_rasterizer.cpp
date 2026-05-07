@@ -86,7 +86,8 @@ RasterizerOpenGL::RasterizerOpenGL(Memory::MemorySystem& memory, Pica::PicaCore&
                                    VideoCore::RendererBase& renderer, Driver& driver_)
     : VideoCore::RasterizerAccelerated{memory, pica}, driver{driver_},
       render_window{renderer.GetRenderWindow()}, runtime{driver, renderer},
-      res_cache{memory, custom_tex_manager, runtime, regs, renderer},
+      res_cache{memory, custom_tex_manager, runtime, regs, pica.regs.framebuffer_config,
+                renderer},
       vertex_buffer{driver, GL_ARRAY_BUFFER, VERTEX_BUFFER_SIZE},
       uniform_buffer{driver, GL_UNIFORM_BUFFER, UNIFORM_BUFFER_SIZE},
       index_buffer{driver, GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFFER_SIZE},
